@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { setupSocketHandlers } from './socket/handlers.js';
 
 dotenv.config();
 
@@ -61,22 +62,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Socket.io connection handler
-io.on('connection', (socket) => {
-  console.log(`Client connected: ${socket.id}`);
-  
-  socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
-  });
-  
-  // Echo test
-  socket.on('ping', (data) => {
-    socket.emit('pong', { 
-      received: data, 
-      timestamp: Date.now(),
-      message: 'Socket.io is working!'
-    });
-  });
-});
+setupSocketHandlers(io);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

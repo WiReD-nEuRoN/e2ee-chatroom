@@ -10,20 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "idb": "^8.0.3",
+    "openpgp": "^6.3.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",
     "socket.io-client": "^4.8.3",
-    "openpgp": "^6.3.0",
-    "zustand": "^5.0.10",
-    "idb": "^8.0.3"
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^24.10.1",
+    "@types/openpgp": "^4.4.22",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@types/openpgp": "^4.4.22",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
