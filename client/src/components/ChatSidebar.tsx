@@ -1,5 +1,4 @@
 import type { ChatRoom } from '../types';
-
 import { useState } from 'react';
 import { chatService } from '../services/chat';
 
@@ -58,6 +57,21 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSelectRoom,
   currentUser,
 }) => {
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newChatUsername, setNewChatUsername] = useState('');
+
+  const handleCreateChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newChatUsername.trim()) {
+      // Create a direct message room with the entered username
+      // In a real app, you'd look up the user's ID from the username
+      // For demo purposes, we'll use the username as the ID
+      chatService.createRoom(newChatUsername.trim(), 'direct', [newChatUsername.trim()]);
+      setNewChatUsername('');
+      setShowNewChat(false);
+    }
+  };
+
   return (
     <div className="w-80 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)]">
       {/* Header */}
@@ -70,31 +84,112 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search conversations..."
-            className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none transition-colors"
-          />
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        {/* Search and New Chat */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none transition-colors"
             />
-          </svg>
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <button
+            onClick={() => setShowNewChat(true)}
+            className="p-2 rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/80 transition-colors"
+            title="New Chat"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
+      {/* New Chat Modal */}
+      {showNewChat && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 w-96 shadow-2xl">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">
+              Start New Chat
+            </h2>
+            <form onSubmit={handleCreateChat}>
+              <input
+                type="text"
+                value={newChatUsername}
+                onChange={(e) => setNewChatUsername(e.target.value)}
+                placeholder="Enter username..."
+                className="w-full px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl mb-4 focus:border-[var(--accent-primary)] focus:outline-none transition-colors"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewChat(false)}
+                  className="flex-1 py-2 px-4 rounded-xl bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]/80 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 px-4 rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/80 transition-colors"
+                >
+                  Start Chat
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Room List */}
       <div className="flex-1 overflow-y-auto">
+        {rooms.length === 0 && (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-[var(--text-muted)]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <p className="text-[var(--text-muted)] text-sm">
+              No conversations yet.
+              <br />
+              Click + to start a new chat!
+            </p>
+          </div>
+        )}
         {rooms.map((room) => (
           <button
             key={room.id}
