@@ -11,32 +11,38 @@
     "lint": "eslint .",
     "test": "echo \"Tests not implemented yet\" && exit 0"
   },
-  "keywords": ["chat", "e2ee", "pgp", "encryption"],
+  "keywords": [
+    "chat",
+    "e2ee",
+    "pgp",
+    "encryption"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.21.2",
+    "@supabase/supabase-js": "^2.95.3",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^3.0.2",
-    "socket.io": "^4.8.1",
-    "helmet": "^8.0.0",
+    "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.1",
     "uuid": "^11.1.0",
     "zod": "^3.25.74"
   },
   "devDependencies": {
-    "@types/express": "^5.0.2",
-    "@types/cors": "^2.8.17",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/uuid": "^10.0.0",
-    "@types/node": "^22.15.4",
-    "typescript": "^5.8.3",
-    "tsx": "^4.19.4",
-    "eslint": "^9.26.0",
     "@eslint/js": "^9.26.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.4",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.26.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.0"
   }
 }

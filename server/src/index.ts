@@ -6,8 +6,17 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { setupSocketHandlers } from './socket/handlers.js';
+import { initSupabase } from './services/supabaseClient.js';
 
 dotenv.config();
+
+// Initialize Supabase
+try {
+  initSupabase();
+} catch (error) {
+  console.error('⚠️  Supabase initialization warning:', error);
+  console.log('💾 Using fallback in-memory storage');
+}
 
 const app = express();
 const server = createServer(app);

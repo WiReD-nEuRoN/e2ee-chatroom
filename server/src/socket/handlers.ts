@@ -1,9 +1,12 @@
-// In-memory storage (replace with database in production)
+import { Database, User as DbUser, Room as DbRoom, Message as DbMessage } from '../services/database.js';
+
+// In-memory fallback storage
 interface User {
   id: string;
   socketId: string;
   username: string;
   publicKey: string;
+  avatar?: string;
   isOnline: boolean;
   lastSeen: Date;
 }
@@ -12,7 +15,7 @@ interface Room {
   id: string;
   name: string;
   type: 'direct' | 'group';
-  participants: string[]; // user IDs
+  participants: string[];
   isEncrypted: boolean;
   createdAt: Date;
 }
@@ -41,6 +44,15 @@ const users = new Map<string, User>();
 const rooms = new Map<string, Room>();
 const messages = new Map<string, Message[]>();
 
+// Try to initialize database (will fail gracefully if Supabase not configured)
+let db: Database | null = null;
+try {
+  db = new Database();
+  console.log('✅ Database service initialized');
+} catch (error) {
+  console.log('⚠️  Database service unavailable, using in-memory storage');
+}
+
 // Helper to transform room with participant IDs to room with full user objects
 function transformRoomForClient(room: Room, forUserId?: string) {
   const participants = room.participants.map(pid => {
@@ -50,6 +62,7 @@ function transformRoomForClient(room: Room, forUserId?: string) {
         id: user.id,
         username: user.username,
         publicKey: user.publicKey,
+        avatar: user.avatar,
         fingerprint: user.publicKey ? 'No fingerprint' : 'No key',
         isOnline: user.isOnline,
         lastSeen: user.lastSeen,
@@ -60,6 +73,7 @@ function transformRoomForClient(room: Room, forUserId?: string) {
       id: pid,
       username: pid,
       publicKey: '',
+      avatar: undefined,
       fingerprint: 'Unknown',
       isOnline: false,
     };
@@ -86,14 +100,15 @@ export function setupSocketHandlers(io: any) {
     console.log(`Client connected: ${socket.id}`);
 
     // Authentication
-    socket.on('authenticate', (data: { userId: string; username?: string; publicKey?: string }) => {
-      const { userId, username, publicKey } = data;
+    socket.on('authenticate', async (data: { userId: string; username?: string; publicKey?: string; avatar?: string }) => {
+      const { userId, username, publicKey, avatar } = data;
       
       const user: User = {
         id: userId,
         socketId: socket.id,
         username: username || `User-${userId.slice(0, 6)}`,
         publicKey: publicKey || '',
+        avatar,
         isOnline: true,
         lastSeen: new Date(),
       };
@@ -101,26 +116,76 @@ export function setupSocketHandlers(io: any) {
       users.set(userId, user);
       socket.userId = userId;
 
+      // Try to save to database
+      if (db) {
+        try {
+          await db.createOrUpdateUser({
+            id: user.id,
+            username: user.username,
+            publicKey: user.publicKey,
+            avatar: user.avatar,
+            isOnline: true,
+            lastSeen: user.lastSeen,
+          });
+        } catch (error) {
+          console.error('Error saving user to database:', error);
+        }
+      }
+
       console.log(`User authenticated: ${username} (${userId})`);
 
       // Send user's rooms with full participant data
       console.log(`[SERVER] Sending rooms:list to ${username}, total rooms: ${rooms.size}, userId: ${userId}`);
-      console.log(`[SERVER] All users:`, Array.from(users.values()).map(u => ({id: u.id, username: u.username, hasKey: !!u.publicKey})));
       const userRooms = Array.from(rooms.values())
         .filter((room) => room.participants.includes(userId))
         .map((room) => transformRoomForClient(room, userId));
       console.log(`[SERVER] Sending ${userRooms.length} rooms to ${username}`);
-      userRooms.forEach((room, i) => {
-        console.log(`[SERVER] Room ${i}: ${room.id}, participants:`, room.participants.map((p: any) => ({id: p.id, username: p.username, hasKey: !!p.publicKey})));
-      });
       socket.emit('rooms:list', userRooms);
 
       // Notify others that user is online
       socket.broadcast.emit('user:online', { userId });
     });
 
+    // Profile update
+    socket.on('profile:update', async (data: { username?: string; avatar?: string }) => {
+      const userId = socket.userId;
+      if (!userId) {
+        socket.emit('error', { message: 'Not authenticated' });
+        return;
+      }
+
+      const user = users.get(userId);
+      if (!user) {
+        socket.emit('error', { message: 'User not found' });
+        return;
+      }
+
+      // Update in-memory user
+      if (data.username) user.username = data.username;
+      if (data.avatar !== undefined) user.avatar = data.avatar;
+      users.set(userId, user);
+
+      // Try to save to database
+      if (db) {
+        try {
+          await db.updateUserProfile(userId, data);
+        } catch (error) {
+          console.error('Error updating user profile in database:', error);
+        }
+      }
+
+      // Broadcast profile update to all connected clients
+      io.emit('user:profile-updated', {
+        userId,
+        username: user.username,
+        avatar: user.avatar,
+      });
+
+      console.log(`User ${userId} updated profile`);
+    });
+
     // Room management
-    socket.on('room:create', (data: { name: string; type: 'direct' | 'group'; participantIds: string[] }) => {
+    socket.on('room:create', async (data: { name: string; type: 'direct' | 'group'; participantIds: string[] }) => {
       const { name, type, participantIds } = data;
       const userId = socket.userId;
 
@@ -131,22 +196,18 @@ export function setupSocketHandlers(io: any) {
 
       const roomId = `room-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       console.log(`[SERVER] Creating room: ${roomId}, requested participants:`, participantIds);
-      console.log(`[SERVER] Creator userId: ${userId}, all authenticated users:`, Array.from(users.values()).map(u => ({id: u.id, username: u.username})));
       
       // Convert usernames to userIds if needed
       const resolvedParticipantIds = participantIds.map(pid => {
-        // If it's already a valid userId, use it
         if (users.has(pid)) {
           console.log(`[SERVER] ${pid} is a valid userId`);
           return pid;
         }
-        // Otherwise try to find by username
         const userByName = Array.from(users.values()).find(u => u.username === pid);
         if (userByName) {
           console.log(`[SERVER] Resolved username '${pid}' to userId '${userByName.id}'`);
           return userByName.id;
         }
-        // If not found, keep the original (might be offline user)
         console.log(`[SERVER] Could not resolve '${pid}', keeping as-is`);
         return pid;
       });
@@ -163,22 +224,28 @@ export function setupSocketHandlers(io: any) {
       rooms.set(roomId, room);
       messages.set(roomId, []);
 
+      // Try to save to database
+      if (db) {
+        try {
+          await db.createRoom(room);
+        } catch (error) {
+          console.error('Error creating room in database:', error);
+        }
+      }
+
       console.log(`[SERVER] Room created with participants:`, room.participants);
 
       // Add all participants' sockets to the room and notify them
       console.log(`[SERVER] Notifying ${room.participants.length} participants about room ${roomId}`);
       room.participants.forEach((pid) => {
-        // Try to find user by userId first, then by username
         let user = users.get(pid);
         
-        // If not found by ID, search by username
         if (!user) {
           user = Array.from(users.values()).find((u) => u.username === pid);
         }
         
         if (user) {
           console.log(`[SERVER] Processing participant ${user.username} (${user.id}), socket: ${user.socketId}`);
-          // Add socket to the room so they receive messages immediately
           const userSocket = io.sockets.sockets.get(user.socketId);
           if (userSocket) {
             userSocket.join(roomId);
@@ -186,7 +253,6 @@ export function setupSocketHandlers(io: any) {
           } else {
             console.log(`[SERVER] Socket not found for ${user.username}, they may be offline`);
           }
-          // Notify participant about the new room (with full participant data)
           const roomForClient = transformRoomForClient(room, user.id);
           io.to(user.socketId).emit('room:created', roomForClient);
           console.log(`[SERVER] Notified ${user.username} about room ${roomId}`);
@@ -198,7 +264,7 @@ export function setupSocketHandlers(io: any) {
       console.log(`Room created: ${name} (${roomId})`);
     });
 
-    socket.on('room:join', (data: { roomId: string }) => {
+    socket.on('room:join', async (data: { roomId: string }) => {
       const { roomId } = data;
       socket.join(roomId);
       console.log(`Socket ${socket.id} joined room: ${roomId}`);
@@ -215,7 +281,7 @@ export function setupSocketHandlers(io: any) {
     });
 
     // Message handling
-    socket.on('message:send', (data: { roomId: string; content: string; encryptedContent?: string; tempId: string; type: string; fileInfo?: any }) => {
+    socket.on('message:send', async (data: { roomId: string; content: string; encryptedContent?: string; tempId: string; type: string; fileInfo?: any }) => {
       const { roomId, content, encryptedContent, tempId, type, fileInfo } = data;
       const userId = socket.userId;
 
@@ -252,10 +318,19 @@ export function setupSocketHandlers(io: any) {
         fileInfo,
       };
 
-      // Store message (without isOwn field - client will determine this)
+      // Store message in memory
       const roomMessages = messages.get(roomId) || [];
       roomMessages.push(message);
       messages.set(roomId, roomMessages);
+
+      // Try to save to database
+      if (db) {
+        try {
+          await db.createMessage(message);
+        } catch (error) {
+          console.error('Error saving message to database:', error);
+        }
+      }
 
       // Confirm to sender
       socket.emit('message:sent', { roomId, messageId, tempId });
@@ -271,14 +346,25 @@ export function setupSocketHandlers(io: any) {
       console.log(`[SERVER] Message ${messageId} sent in room ${roomId} by ${user.username}`);
     });
 
-    socket.on('message:read', (data: { roomId: string; messageId: string }) => {
+    socket.on('message:read', async (data: { roomId: string; messageId: string }) => {
       const { roomId, messageId } = data;
       
-      // Notify the sender that message was read
+      // Update message status in memory
       const roomMessages = messages.get(roomId) || [];
       const message = roomMessages.find((m) => m.id === messageId);
       
       if (message) {
+        message.status = 'read';
+
+        // Try to save status to database
+        if (db) {
+          try {
+            await db.updateMessageStatus(messageId, 'read');
+          } catch (error) {
+            console.error('Error updating message status in database:', error);
+          }
+        }
+
         const sender = users.get(message.senderId);
         if (sender) {
           io.to(sender.socketId).emit('message:read', { roomId, messageId });
@@ -313,7 +399,7 @@ export function setupSocketHandlers(io: any) {
     });
 
     // Disconnect handling
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       console.log(`Client disconnected: ${socket.id}`);
       
       const userId = socket.userId;
@@ -323,6 +409,15 @@ export function setupSocketHandlers(io: any) {
           user.isOnline = false;
           user.lastSeen = new Date();
           users.set(userId, user);
+
+          // Try to update database
+          if (db) {
+            try {
+              await db.updateUserOnlineStatus(userId, false);
+            } catch (error) {
+              console.error('Error updating user status in database:', error);
+            }
+          }
 
           // Notify others
           socket.broadcast.emit('user:offline', {
