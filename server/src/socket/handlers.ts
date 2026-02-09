@@ -119,6 +119,7 @@ export function setupSocketHandlers(io: any) {
       // Try to save to database
       if (db) {
         try {
+          console.log(`[DATABASE] Saving user to database: ${user.id}`);
           await db.createOrUpdateUser({
             id: user.id,
             username: user.username,
@@ -127,9 +128,12 @@ export function setupSocketHandlers(io: any) {
             isOnline: true,
             lastSeen: user.lastSeen,
           });
+          console.log(`[DATABASE] ✅ User saved successfully: ${user.id}`);
         } catch (error) {
-          console.error('Error saving user to database:', error);
+          console.error(`[DATABASE] ❌ Error saving user to database:`, error);
         }
+      } else {
+        console.log(`[DATABASE] ⚠️  No database connection, using in-memory storage`);
       }
 
       console.log(`User authenticated: ${username} (${userId})`);
@@ -168,10 +172,14 @@ export function setupSocketHandlers(io: any) {
       // Try to save to database
       if (db) {
         try {
+          console.log(`[DATABASE] Updating user profile in database: ${userId}`);
           await db.updateUserProfile(userId, data);
+          console.log(`[DATABASE] ✅ User profile updated successfully: ${userId}`);
         } catch (error) {
-          console.error('Error updating user profile in database:', error);
+          console.error(`[DATABASE] ❌ Error updating user profile in database:`, error);
         }
+      } else {
+        console.log(`[DATABASE] ⚠️  No database connection, using in-memory storage`);
       }
 
       // Broadcast profile update to all connected clients
@@ -227,10 +235,14 @@ export function setupSocketHandlers(io: any) {
       // Try to save to database
       if (db) {
         try {
+          console.log(`[DATABASE] Saving room to database: ${roomId}`);
           await db.createRoom(room);
+          console.log(`[DATABASE] ✅ Room saved successfully: ${roomId}`);
         } catch (error) {
-          console.error('Error creating room in database:', error);
+          console.error(`[DATABASE] ❌ Error creating room in database:`, error);
         }
+      } else {
+        console.log(`[DATABASE] ⚠️  No database connection, using in-memory storage`);
       }
 
       console.log(`[SERVER] Room created with participants:`, room.participants);
@@ -326,10 +338,14 @@ export function setupSocketHandlers(io: any) {
       // Try to save to database
       if (db) {
         try {
+          console.log(`[DATABASE] Saving message to database: ${messageId}`);
           await db.createMessage(message);
+          console.log(`[DATABASE] ✅ Message saved successfully: ${messageId}`);
         } catch (error) {
-          console.error('Error saving message to database:', error);
+          console.error(`[DATABASE] ❌ Error saving message to database:`, error);
         }
+      } else {
+        console.log(`[DATABASE] ⚠️  No database connection, using in-memory storage`);
       }
 
       // Confirm to sender
