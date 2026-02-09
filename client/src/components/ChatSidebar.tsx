@@ -1,36 +1,15 @@
 import type { ChatRoom } from '../types';
 import { useState } from 'react';
 import { chatService } from '../services/chat';
+import { Avatar } from './Avatar';
 
 interface ChatSidebarProps {
   rooms: ChatRoom[];
   selectedRoom: ChatRoom | null;
   onSelectRoom: (room: ChatRoom) => void;
-  currentUser: { username: string; fingerprint: string };
+  currentUser: { username: string; fingerprint: string; avatar?: string };
   onShowProfile?: () => void;
 }
-
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-};
-
-const getAvatarColor = (name: string) => {
-  const colors = [
-    'from-pink-500 to-rose-500',
-    'from-purple-500 to-indigo-500',
-    'from-blue-500 to-cyan-500',
-    'from-green-500 to-emerald-500',
-    'from-yellow-500 to-orange-500',
-    'from-red-500 to-pink-500',
-  ];
-  const index = name.charCodeAt(0) % colors.length;
-  return colors[index];
-};
 
 const formatTime = (date: Date) => {
   const now = new Date();
@@ -223,16 +202,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           >
             {/* Avatar */}
             <div className="relative">
-              <div
-                className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(
-                  room.name
-                )} flex items-center justify-center text-white font-semibold text-sm shadow-lg`}
-              >
-                {getInitials(room.name)}
-              </div>
-              {room.type === 'direct' && room.participants[0]?.isOnline && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--success)] border-2 border-[var(--bg-secondary)]" />
-              )}
+              <Avatar
+                src={room.participants[0]?.avatar}
+                name={room.name}
+                size="md"
+                showOnlineIndicator={room.type === 'direct'}
+                isOnline={room.type === 'direct' && room.participants[0]?.isOnline}
+              />
             </div>
 
             {/* Info */}
@@ -269,9 +245,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       {/* User Profile */}
       <div className="p-4 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center text-white font-semibold text-sm">
-            {getInitials(currentUser.username)}
-          </div>
+          <Avatar
+            src={currentUser.avatar}
+            name={currentUser.username}
+            size="sm"
+          />
           <div className="flex-1 min-w-0">
             <p className="font-medium text-[var(--text-primary)] truncate">
               {currentUser.username}

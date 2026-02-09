@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Avatar } from './Avatar';
 import type { Message } from '../types';
 
 interface MessageListProps {
@@ -338,11 +339,13 @@ export const MessageList: React.FC<MessageListProps> = ({
                   >
                     {/* Avatar for received messages */}
                     {!message.isOwn && (
-                      <div className="flex-shrink-0 w-8">
+                      <div className="flex-shrink-0">
                         {showAvatar && (
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs font-semibold">
-                            {message.senderName.charAt(0).toUpperCase()}
-                          </div>
+                          <Avatar
+                            src={message.senderAvatar}
+                            name={message.senderName}
+                            size="sm"
+                          />
                         )}
                       </div>
                     )}

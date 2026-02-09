@@ -12,6 +12,7 @@ export interface Message {
   id: string;
   senderId: string;
   senderName: string;
+  senderAvatar?: string;
   content: string;
   encryptedContent?: string;
   timestamp: Date;
