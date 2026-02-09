@@ -39,11 +39,18 @@ export interface Message {
 }
 
 export class Database {
-  private supabase = getSupabase();
+  private supabaseClient: ReturnType<typeof getSupabase> | null = null;
+
+  private getClient() {
+    if (!this.supabaseClient) {
+      this.supabaseClient = getSupabase();
+    }
+    return this.supabaseClient;
+  }
 
   // Users
   async getUser(userId: string): Promise<User | null> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('users')
       .select('*')
       .eq('id', userId)
@@ -57,7 +64,7 @@ export class Database {
   }
 
   async createOrUpdateUser(user: User): Promise<User> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('users')
       .upsert(
         {
@@ -81,7 +88,7 @@ export class Database {
   }
 
   async updateUserOnlineStatus(userId: string, isOnline: boolean): Promise<void> {
-    const { error } = await this.supabase
+    const { error } = await this.getClient()
       .from('users')
       .update({
         is_online: isOnline,
@@ -99,7 +106,7 @@ export class Database {
     if (updates.username) updateData.username = updates.username;
     if (updates.avatar !== undefined) updateData.avatar = updates.avatar;
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('users')
       .update(updateData)
       .eq('id', userId)
@@ -115,7 +122,7 @@ export class Database {
 
   // Rooms
   async getRoom(roomId: string): Promise<Room | null> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('rooms')
       .select('*')
       .eq('id', roomId)
@@ -141,7 +148,7 @@ export class Database {
   }
 
   async getUserRooms(userId: string): Promise<Room[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('rooms')
       .select('*')
       .contains('participants', [userId]);
@@ -162,7 +169,7 @@ export class Database {
   }
 
   async createRoom(room: Room): Promise<Room> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('rooms')
       .insert({
         id: room.id,
@@ -192,7 +199,7 @@ export class Database {
 
   // Messages
   async getRoomMessages(roomId: string, limit = 100): Promise<Message[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('messages')
       .select('*')
       .eq('room_id', roomId)
@@ -219,7 +226,7 @@ export class Database {
   }
 
   async createMessage(message: Message): Promise<Message> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getClient()
       .from('messages')
       .insert({
         id: message.id,
@@ -256,7 +263,7 @@ export class Database {
   }
 
   async updateMessageStatus(messageId: string, status: string): Promise<void> {
-    const { error } = await this.supabase
+    const { error } = await this.getClient()
       .from('messages')
       .update({ status })
       .eq('id', messageId);
