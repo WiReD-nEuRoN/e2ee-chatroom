@@ -7,6 +7,7 @@ interface ChatSidebarProps {
   selectedRoom: ChatRoom | null;
   onSelectRoom: (room: ChatRoom) => void;
   currentUser: { username: string; fingerprint: string };
+  onShowProfile?: () => void;
 }
 
 const getInitials = (name: string) => {
@@ -56,9 +57,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   selectedRoom,
   onSelectRoom,
   currentUser,
+  onShowProfile,
 }) => {
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatUsername, setNewChatUsername] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCreateChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +74,15 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       setShowNewChat(false);
     }
   };
+
+  // Filter rooms based on search query
+  const filteredRooms = searchQuery.trim()
+    ? rooms.filter(
+        (room) =>
+          room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (room.lastMessage?.content.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      )
+    : rooms;
 
   return (
     <div className="w-80 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)]">
@@ -89,11 +101,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <div className="relative flex-1">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
               className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none transition-colors"
             />
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -166,7 +180,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
       {/* Room List */}
       <div className="flex-1 overflow-y-auto">
-        {rooms.length === 0 && (
+        {filteredRooms.length === 0 && searchQuery.trim() && (
+          <div className="p-8 text-center">
+            <p className="text-[var(--text-muted)] text-sm">
+              No conversations found matching "{searchQuery}"
+            </p>
+          </div>
+        )}
+        {filteredRooms.length === 0 && !searchQuery.trim() && (
           <div className="p-8 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center">
               <svg
@@ -190,7 +211,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             </p>
           </div>
         )}
-        {rooms.map((room) => (
+        {filteredRooms.map((room) => (
           <button
             key={room.id}
             onClick={() => onSelectRoom(room)}
@@ -235,8 +256,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     : 'No messages yet'}
                 </p>
                 {room.unreadCount > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-[var(--accent-primary)] text-white rounded-full">
-                    {room.unreadCount}
+                  <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-[var(--accent-primary)] text-white rounded-full">
+                    {room.unreadCount} new
                   </span>
                 )}
               </div>
@@ -259,7 +280,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               {currentUser.fingerprint}
             </p>
           </div>
-          <button className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]">
+          <button 
+            onClick={onShowProfile}
+            className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]"
+          >
             <svg
               className="w-5 h-5"
               fill="none"

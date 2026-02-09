@@ -1,6 +1,9 @@
 import type { ChatRoom } from '../types';
+import { useState } from 'react';
 import { ChatSidebar } from './ChatSidebar';
 import { ChatWindow } from './ChatWindow';
+import { ProfilePage } from './ProfilePage';
+import { MediaPage } from './MediaPage';
 
 interface ChatLayoutProps {
   chat: {
@@ -18,6 +21,9 @@ interface ChatLayoutProps {
 }
 
 export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
+  const [showProfile, setShowProfile] = useState(false);
+  const [showMedia, setShowMedia] = useState(false);
+
   const {
     rooms,
     selectedRoom,
@@ -25,7 +31,6 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
     connectionError,
     currentUser,
     selectRoom,
-    sendMessage,
     handleTyping,
     getRoomMessages,
     isTyping,
@@ -97,6 +102,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
         selectedRoom={selectedRoom}
         onSelectRoom={selectRoom}
         currentUser={currentUser}
+        onShowProfile={() => setShowProfile(true)}
       />
 
       {/* Main Chat Window */}
@@ -104,9 +110,9 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
         <ChatWindow
           room={selectedRoom}
           messages={messages}
-          onSendMessage={sendMessage}
           onTyping={handleTyping}
           isTyping={isTyping(selectedRoom.id)}
+          onShowMedia={() => setShowMedia(true)}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]">
@@ -139,6 +145,26 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <ProfilePage
+          onClose={() => setShowProfile(false)}
+          onProfileUpdate={(username, avatar) => {
+            console.log('Profile updated:', { username, avatar });
+            // Broadcast to other users would happen here via socket
+          }}
+        />
+      )}
+
+      {/* Media Modal */}
+      {showMedia && selectedRoom && (
+        <MediaPage
+          messages={messages}
+          onClose={() => setShowMedia(false)}
+          roomName={selectedRoom.name}
+        />
       )}
     </div>
   );

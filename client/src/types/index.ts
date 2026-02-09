@@ -15,13 +15,16 @@ export interface Message {
   content: string;
   encryptedContent?: string;
   timestamp: Date;
-  type: 'text' | 'file' | 'system';
+  type: 'text' | 'file' | 'system' | 'voice';
   status: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
   isOwn: boolean;
   fileInfo?: {
     name: string;
     size: number;
     type: string;
+    data?: string;
+    isImage?: boolean;
+    duration?: number;
   };
 }
 

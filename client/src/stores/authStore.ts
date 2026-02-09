@@ -7,13 +7,15 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   token: string | null;
+  privateKey: string | null;
   
   // Actions
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
+  setPrivateKey: (key: string | null) => void;
   setAuthenticated: (value: boolean) => void;
   setLoading: (value: boolean) => void;
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string, privateKey: string) => void;
   logout: () => void;
 }
 
@@ -24,16 +26,19 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       token: null,
+      privateKey: null,
 
       setUser: (user) => set({ user }),
       setToken: (token) => set({ token }),
+      setPrivateKey: (privateKey) => set({ privateKey }),
       setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
       setLoading: (isLoading) => set({ isLoading }),
 
-      login: (user, token) =>
+      login: (user, token, privateKey) =>
         set({
           user,
           token,
+          privateKey,
           isAuthenticated: true,
           isLoading: false,
         }),
@@ -42,13 +47,18 @@ export const useAuthStore = create<AuthState>()(
         set({
           user: null,
           token: null,
+          privateKey: null,
           isAuthenticated: false,
           isLoading: false,
         }),
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({ 
+        token: state.token, 
+        user: state.user,
+        privateKey: state.privateKey,
+      }),
     }
   )
 );

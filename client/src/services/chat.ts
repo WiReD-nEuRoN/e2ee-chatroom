@@ -14,8 +14,11 @@ class ChatService {
     if (this.socket?.connected) return;
 
     this.socket = io(SOCKET_URL, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     this.setupEventListeners();
@@ -39,10 +42,12 @@ class ChatService {
       // Authenticate with the server
       const { user, token } = useAuthStore.getState();
       if (user && token) {
+        console.log('[CLIENT] Authenticating user:', user.username, 'with publicKey:', user.publicKey ? 'present' : 'missing');
         this.socket?.emit('authenticate', {
           userId: user.id,
+          username: user.username,
           token,
-          publicKey: encryptionService.getPublicKey(),
+          publicKey: user.publicKey,
         });
       }
     });
@@ -62,6 +67,7 @@ class ChatService {
     });
 
     this.socket.on('room:created', (room: ChatRoom) => {
+      console.log('[CLIENT] Received room:created event:', room);
       useChatStore.getState().addRoom(room);
     });
 
@@ -71,23 +77,40 @@ class ChatService {
 
     // Message events
     this.socket.on('message:new', async (data: { roomId: string; message: Message }) => {
+      console.log('[CLIENT] Received message:new:', data);
       const { roomId, message } = data;
-      
+
+      // Determine if this is own message
+      const { user } = useAuthStore.getState();
+      const isOwn = user ? message.senderId === user.id : false;
+
+      // Add isOwn field to message
+      const messageWithOwnFlag = {
+        ...message,
+        isOwn,
+        status: isOwn ? 'sent' : 'delivered' as Message['status'],
+      };
+
+      console.log('[CLIENT] Message isOwn:', isOwn, 'senderId:', message.senderId, 'my userId:', user?.id);
+
       // Decrypt message if encrypted
       if (message.encryptedContent) {
         try {
+          console.log('[CLIENT] Decrypting message...');
           const decryptedContent = await encryptionService.decryptMessage(
             message.encryptedContent,
             undefined // TODO: Get sender's public key for verification
           );
-          message.content = decryptedContent;
+          messageWithOwnFlag.content = decryptedContent;
+          console.log('[CLIENT] Message decrypted successfully');
         } catch (error) {
-          console.error('Failed to decrypt message:', error);
-          message.content = '🔒 Encrypted message (decryption failed)';
+          console.error('[CLIENT] Failed to decrypt message:', error);
+          messageWithOwnFlag.content = '🔒 Encrypted message (decryption failed)';
         }
       }
 
-      useChatStore.getState().addMessage(roomId, message);
+      console.log('[CLIENT] Adding message to store for room:', roomId);
+      useChatStore.getState().addMessage(roomId, messageWithOwnFlag);
     });
 
     this.socket.on('message:sent', (data: { roomId: string; messageId: string; tempId: string }) => {
@@ -158,13 +181,24 @@ class ChatService {
   }
 
   // Public methods
-  async sendMessage(roomId: string, content: string, recipientPublicKeys?: string[]) {
-    if (!this.socket) return;
+  async sendMessage(
+    roomId: string, 
+    content: string, 
+    recipientPublicKeys?: string[],
+    options?: { type?: 'text' | 'file' | 'voice'; fileInfo?: any }
+  ) {
+    if (!this.socket) {
+      console.error('[CLIENT] Cannot send message: socket not connected');
+      return;
+    }
 
+    console.log('[CLIENT] Sending message to room:', roomId);
     const tempId = `temp-${Date.now()}`;
     const { user } = useAuthStore.getState();
 
     if (!user) return;
+
+    const messageType = options?.type || 'text';
 
     // Create temporary message
     const tempMessage: Message = {
@@ -173,16 +207,17 @@ class ChatService {
       senderName: user.username,
       content,
       timestamp: new Date(),
-      type: 'text',
+      type: messageType,
       status: 'sending',
       isOwn: true,
+      fileInfo: options?.fileInfo,
     };
 
     useChatStore.getState().addMessage(roomId, tempMessage);
 
-    // Encrypt message
+    // Encrypt message (only for text, skip for files/voice)
     let encryptedContent: string | undefined;
-    if (recipientPublicKeys && recipientPublicKeys.length > 0) {
+    if (messageType === 'text' && recipientPublicKeys && recipientPublicKeys.length > 0) {
       try {
         if (recipientPublicKeys.length === 1) {
           encryptedContent = await encryptionService.encryptMessage(
@@ -205,7 +240,8 @@ class ChatService {
       content,
       encryptedContent,
       tempId,
-      type: 'text',
+      type: messageType,
+      fileInfo: options?.fileInfo,
     });
   }
 
@@ -237,7 +273,11 @@ class ChatService {
   }
 
   joinRoom(roomId: string) {
-    if (!this.socket) return;
+    if (!this.socket) {
+      console.error('[CLIENT] Cannot join room: socket not connected');
+      return;
+    }
+    console.log('[CLIENT] Joining room:', roomId);
     this.socket.emit('room:join', { roomId });
   }
 

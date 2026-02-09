@@ -46,7 +46,17 @@ export const useChat = () => {
 
       const recipientKeys = selectedRoom.participants
         .filter((p) => p.id !== user.id)
-        .map((p) => p.publicKey);
+        .map((p) => p.publicKey)
+        .filter((key) => key && key.length > 0); // Filter out empty/undefined keys
+
+      console.log('[useChat] Recipient keys:', recipientKeys.length, 'participants:', selectedRoom.participants.map(p => ({id: p.id, username: p.username, hasKey: !!p.publicKey})));
+
+      if (recipientKeys.length === 0) {
+        console.error('[useChat] No recipient public keys available for encryption');
+        // Still send message but without encryption
+        await chatService.sendMessage(selectedRoom.id, content, undefined);
+        return;
+      }
 
       await chatService.sendMessage(selectedRoom.id, content, recipientKeys);
     },

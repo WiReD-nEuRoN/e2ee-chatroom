@@ -30,23 +30,46 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
         throw new Error('Password must be at least 6 characters');
       }
 
-      // Generate encryption keys
-      const keyPair = await encryptionService.generateKeyPair(username, password);
+      if (isRegistering) {
+        // Generate new encryption keys
+        const keyPair = await encryptionService.generateKeyPair(username, password);
 
-      // Create user
-      const user: User = {
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        username,
-        publicKey: keyPair.publicKey,
-        fingerprint: keyPair.fingerprint,
-        isOnline: true,
-      };
+        // Create user
+        const user: User = {
+          id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          username,
+          publicKey: keyPair.publicKey,
+          fingerprint: keyPair.fingerprint,
+          isOnline: true,
+        };
 
-      // Mock token (replace with real JWT in production)
-      const token = `mock-jwt-token-${Date.now()}`;
+        // Mock token (replace with real JWT in production)
+        const token = `mock-jwt-token-${Date.now()}`;
 
-      // Store auth state
-      login(user, token);
+        // Store auth state with private key
+        login(user, token, keyPair.privateKey);
+      } else {
+        // Login - load existing keys
+        const privateKey = useAuthStore.getState().privateKey;
+        if (!privateKey) {
+          throw new Error('No account found. Please register first.');
+        }
+
+        // Load the key pair (this will verify the password)
+        await encryptionService.loadKeyPair(privateKey, password);
+
+        // Get existing user from storage
+        const existingUser = useAuthStore.getState().user;
+        if (!existingUser || existingUser.username !== username) {
+          throw new Error('Invalid username or password');
+        }
+
+        // Create token
+        const token = `mock-jwt-token-${Date.now()}`;
+
+        // Update auth state
+        login(existingUser, token, privateKey);
+      }
 
       onAuthenticated();
     } catch (err) {

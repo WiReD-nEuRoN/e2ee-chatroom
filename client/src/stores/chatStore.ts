@@ -53,7 +53,14 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       ),
     })),
   
-  selectRoom: (room) => set({ selectedRoom: room }),
+  selectRoom: (room) =>
+    set((state) => ({
+      selectedRoom: room,
+      // Reset unread count for the selected room
+      rooms: state.rooms.map((r) =>
+        r.id === room?.id ? { ...r, unreadCount: 0 } : r
+      ),
+    })),
 
   setMessages: (roomId, messages) =>
     set((state) => ({
@@ -63,11 +70,44 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   addMessage: (roomId, message) =>
     set((state) => {
       const roomMessages = state.messages[roomId] || [];
+      // Check if message with same ID already exists
+      const existingIndex = roomMessages.findIndex((msg) => msg.id === message.id);
+      if (existingIndex >= 0) {
+        // Update existing message instead of adding duplicate
+        return {
+          messages: {
+            ...state.messages,
+            [roomId]: roomMessages.map((msg, index) =>
+              index === existingIndex ? message : msg
+            ),
+          },
+        };
+      }
+      
+      // Add new message and update room's lastMessage
+      const updatedMessages = {
+        ...state.messages,
+        [roomId]: [...roomMessages, message],
+      };
+      
+      // Update the room's lastMessage and unreadCount
+      const updatedRooms = state.rooms.map((room) => {
+        if (room.id === roomId) {
+          const isCurrentlySelected = state.selectedRoom?.id === roomId;
+          return {
+            ...room,
+            lastMessage: message,
+            unreadCount: isCurrentlySelected || message.isOwn 
+              ? room.unreadCount 
+              : room.unreadCount + 1,
+          };
+        }
+        return room;
+      });
+      
       return {
-        messages: {
-          ...state.messages,
-          [roomId]: [...roomMessages, message],
-        },
+        messages: updatedMessages,
+        rooms: updatedRooms,
       };
     }),
   

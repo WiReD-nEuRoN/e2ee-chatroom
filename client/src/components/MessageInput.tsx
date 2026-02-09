@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { EmojiPicker } from './EmojiPicker';
 
 interface MessageInputProps {
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, type?: 'text' | 'file' | 'voice', fileInfo?: any) => void;
   onTyping: () => void;
   disabled?: boolean;
 }
@@ -13,10 +14,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-resize textarea
   useEffect(() => {
-    // Auto-resize textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(
@@ -26,10 +35,22 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   }, [message]);
 
+  // Close emoji picker on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+      onSendMessage(message.trim(), 'text');
       setMessage('');
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -48,6 +69,126 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setMessage(e.target.value);
     onTyping();
   };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage((prev) => prev + emoji);
+    textareaRef.current?.focus();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    
+    // Read file as base64 for demo (in production, upload to server/storage)
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      const fileInfo = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        data: base64,
+      };
+      
+      // For images, show preview
+      if (file.type.startsWith('image/')) {
+        onSendMessage(base64, 'file', { ...fileInfo, isImage: true });
+      } else {
+        onSendMessage(file.name, 'file', fileInfo);
+      }
+      
+      setIsUploading(false);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      
+      // Use a ref to track recording time to avoid closure issues
+      let currentRecordingTime = 0;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target?.result as string;
+          onSendMessage('Voice message', 'voice', {
+            name: `Voice message ${new Date().toLocaleTimeString()}`,
+            type: 'audio/webm',
+            size: audioBlob.size,
+            data: base64,
+            duration: currentRecordingTime,
+          });
+        };
+        reader.readAsDataURL(audioBlob);
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      currentRecordingTime = 0;
+      
+      // Start timer
+      recordingIntervalRef.current = setInterval(() => {
+        currentRecordingTime += 1;
+        setRecordingTime(currentRecordingTime);
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      alert('Could not access microphone. Please check permissions.');
+    }
+  }, [onSendMessage]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  }, [isRecording]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+      if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, [isRecording]);
 
   return (
     <div className="px-6 py-4 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
@@ -69,48 +210,98 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         <span>End-to-end encrypted</span>
       </div>
 
+      {/* Recording Indicator */}
+      {isRecording && (
+        <div className="flex items-center justify-center gap-2 mb-3 px-4 py-2 bg-red-500/10 rounded-xl">
+          <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-sm text-red-500 font-medium">Recording... {formatTime(recordingTime)}</span>
+          <button
+            onClick={stopRecording}
+            className="ml-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Stop
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="flex items-end gap-3">
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          className="hidden"
+          disabled={disabled || isUploading}
+        />
+
         {/* Attachment Button */}
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || isUploading || isRecording}
+          onClick={() => fileInputRef.current?.click()}
           className="p-3 rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Attach file"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-            />
-          </svg>
+          {isUploading ? (
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          ) : (
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
+            </svg>
+          )}
         </button>
 
         {/* Emoji Button */}
-        <button
-          type="button"
-          disabled={disabled}
-          className="p-3 rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="relative" ref={emojiPickerRef}>
+          <button
+            type="button"
+            disabled={disabled || isRecording}
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className={`p-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              showEmojiPicker
+                ? 'bg-[var(--accent-primary)] text-white'
+                : 'hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            }`}
+            title="Add emoji"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </button>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+
+          {/* Emoji Picker */}
+          {showEmojiPicker && (
+            <div className="absolute bottom-full left-0 mb-2 z-50">
+              <EmojiPicker 
+                onEmojiSelect={handleEmojiSelect}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Message Input */}
         <div className="flex-1 relative">
@@ -119,8 +310,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder={disabled ? 'Encryption not available' : 'Type a message...'}
-            disabled={disabled}
+            placeholder={disabled ? 'Encryption not available' : isRecording ? 'Recording voice message...' : 'Type a message...'}
+            disabled={disabled || isRecording}
             rows={1}
             className="w-full px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-2xl resize-none focus:outline-none focus:border-[var(--accent-primary)] transition-colors text-[var(--text-primary)] placeholder:text-[var(--text-muted)] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ minHeight: '48px', maxHeight: '120px' }}
@@ -131,7 +322,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         {message.trim() ? (
           <button
             type="submit"
-            disabled={disabled}
+            disabled={disabled || isRecording}
             className="p-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white shadow-lg shadow-[var(--accent-primary)]/30 hover:shadow-[var(--accent-primary)]/50 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <svg
@@ -152,12 +343,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           <button
             type="button"
             disabled={disabled}
-            onClick={() => setIsRecording(!isRecording)}
-            className={`p-3 rounded-xl transition-all ${
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               isRecording
-                ? 'bg-[var(--error)] text-white animate-pulse'
+                ? 'bg-red-500 text-white animate-pulse'
                 : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            }`}
+            title={isRecording ? 'Stop recording' : 'Record voice message'}
           >
             <svg
               className="w-5 h-5"
