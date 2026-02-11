@@ -48,6 +48,27 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runs)
+DROP POLICY IF EXISTS "Allow service role full access on users" ON users;
+DROP POLICY IF EXISTS "Allow service role full access on rooms" ON rooms;
+DROP POLICY IF EXISTS "Allow service role full access on messages" ON messages;
+
+-- Create policies that allow service role to do everything
+CREATE POLICY "Allow service role full access on users" ON users
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow service role full access on rooms" ON rooms
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow service role full access on messages" ON messages
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
 -- Create a function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

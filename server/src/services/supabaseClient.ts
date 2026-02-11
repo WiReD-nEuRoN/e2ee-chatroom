@@ -4,7 +4,8 @@ let supabase: SupabaseClient | null = null;
 
 export function initSupabase(): SupabaseClient {
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+  // Use service role key on server side to bypass RLS policies
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase credentials in environment variables');

@@ -67,7 +67,7 @@ const getStatusIcon = (status: Message['status']) => {
     case 'sending':
       return (
         <svg
-          className="w-3.5 h-3.5 text-[var(--text-muted)] animate-spin"
+          className="w-3.5 h-3.5 text-[var(--muted-foreground)] animate-spin"
           fill="none"
           viewBox="0 0 24 24"
         >
@@ -89,7 +89,7 @@ const getStatusIcon = (status: Message['status']) => {
     case 'sent':
       return (
         <svg
-          className="w-3.5 h-3.5 text-[var(--text-muted)]"
+          className="w-3.5 h-3.5 text-[var(--muted-foreground)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -105,7 +105,7 @@ const getStatusIcon = (status: Message['status']) => {
     case 'delivered':
       return (
         <svg
-          className="w-3.5 h-3.5 text-[var(--text-muted)]"
+          className="w-3.5 h-3.5 text-[var(--muted-foreground)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -121,7 +121,7 @@ const getStatusIcon = (status: Message['status']) => {
     case 'read':
       return (
         <svg
-          className="w-3.5 h-3.5 text-[var(--accent-primary)]"
+          className="w-3.5 h-3.5 text-[var(--primary)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -137,7 +137,7 @@ const getStatusIcon = (status: Message['status']) => {
     case 'error':
       return (
         <svg
-          className="w-3.5 h-3.5 text-[var(--error)]"
+          className="w-3.5 h-3.5 text-red-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -198,7 +198,7 @@ const FileMessage = ({ message }: { message: Message }) => {
       <div className="flex items-center gap-3 min-w-[200px]">
         <button
           onClick={handlePlay}
-          className="w-10 h-10 rounded-full bg-[var(--accent-primary)] flex items-center justify-center text-white hover:scale-105 transition-transform"
+          className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-white hover:scale-105 transition-transform"
         >
           {isPlaying ? (
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -214,14 +214,14 @@ const FileMessage = ({ message }: { message: Message }) => {
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Voice message</span>
-            <span className="text-xs text-[var(--text-muted)]">{formattedDuration}</span>
+            <span className="text-xs text-[var(--muted-foreground)]">{formattedDuration}</span>
           </div>
           {/* Waveform visualization */}
           <div className="flex items-center gap-0.5 mt-1.5">
             {[...Array(20)].map((_, i) => (
               <div
                 key={i}
-                className={`w-1 rounded-full bg-[var(--accent-primary)] transition-all duration-300 ${
+                className={`w-1 rounded-full bg-[var(--primary)] transition-all duration-300 ${
                   isPlaying ? 'animate-pulse' : ''
                 }`}
                 style={{
@@ -238,15 +238,15 @@ const FileMessage = ({ message }: { message: Message }) => {
 
   // Regular file message
   return (
-    <div className="flex items-center gap-3 p-3 bg-[var(--bg-tertiary)] rounded-xl">
-      <div className="w-10 h-10 rounded-lg bg-[var(--accent-primary)]/20 flex items-center justify-center">
-        <svg className="w-5 h-5 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="flex items-center gap-3 p-3 bg-[var(--muted)] rounded-xl">
+      <div className="w-10 h-10 rounded-lg bg-[var(--primary)]/20 flex items-center justify-center">
+        <svg className="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{message.fileInfo?.name || message.content}</p>
-        <p className="text-xs text-[var(--text-muted)]">
+        <p className="text-xs text-[var(--muted-foreground)]">
           {message.fileInfo?.size ? formatFileSize(message.fileInfo.size) : 'Unknown size'}
         </p>
       </div>
@@ -254,7 +254,7 @@ const FileMessage = ({ message }: { message: Message }) => {
         <a
           href={message.fileInfo.data}
           download={message.fileInfo.name}
-          className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+          className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -296,7 +296,7 @@ export const MessageList: React.FC<MessageListProps> = ({
         <div key={groupIndex} className="space-y-4">
           {/* Date Divider */}
           <div className="flex items-center justify-center">
-            <div className="px-4 py-1 rounded-full bg-[var(--bg-tertiary)] text-xs text-[var(--text-muted)]">
+            <div className="px-4 py-1 rounded-full bg-[var(--muted)] text-xs text-[var(--muted-foreground)]">
               {new Date(group.date).toLocaleDateString([], {
                 weekday: 'long',
                 month: 'short',
@@ -321,7 +321,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                 {/* Time separator if needed */}
                 {showTime && (
                   <div className="flex justify-center my-2">
-                    <span className="text-[10px] text-[var(--text-muted)]">
+                    <span className="text-[10px] text-[var(--muted-foreground)]">
                       {formatTime(message.timestamp)}
                     </span>
                   </div>
@@ -354,7 +354,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                     <div className="flex flex-col">
                       {/* Sender name for group chats */}
                       {!message.isOwn && showAvatar && (
-                        <span className="text-xs text-[var(--text-muted)] mb-1 ml-1">
+                        <span className="text-xs text-[var(--muted-foreground)] mb-1 ml-1">
                           {message.senderName}
                         </span>
                       )}
@@ -377,7 +377,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                             message.type === 'text'
                               ? message.isOwn
                                 ? 'message-sent'
-                                : 'message-received border border-[var(--border-color)]'
+                                : 'message-received border border-[var(--border)]'
                               : 'bg-transparent border-none shadow-none'
                           }`}
                         >

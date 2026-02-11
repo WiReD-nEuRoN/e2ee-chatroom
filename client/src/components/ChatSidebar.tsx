@@ -45,16 +45,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const handleCreateChat = (e: React.FormEvent) => {
     e.preventDefault();
     if (newChatUsername.trim()) {
-      // Create a direct message room with the entered username
-      // In a real app, you'd look up the user's ID from the username
-      // For demo purposes, we'll use the username as the ID
       chatService.createRoom(newChatUsername.trim(), 'direct', [newChatUsername.trim()]);
       setNewChatUsername('');
       setShowNewChat(false);
     }
   };
 
-  // Filter rooms based on search query
   const filteredRooms = searchQuery.trim()
     ? rooms.filter(
         (room) =>
@@ -64,90 +60,99 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     : rooms;
 
   return (
-    <div className="w-80 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)]">
+    <div className="w-80 flex flex-col bg-[var(--background)] border-r border-[var(--border)]">
       {/* Header */}
-      <div className="p-4 border-b border-[var(--border-color)]">
+      <div className="p-4 border-b border-[var(--border)]">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold gradient-text">E2EE Chat</h1>
-          <div className="flex items-center gap-2 text-xs text-[var(--success)]">
+          <h1 className="text-xl font-bold text-[var(--foreground)]">E2EE Chat</h1>
+          <div className="flex items-center gap-2 text-xs text-green-500">
             <div className="w-2 h-2 rounded-full status-online animate-pulse-slow" />
             <span>Encrypted</span>
           </div>
         </div>
 
-        {/* Search and New Chat */}
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search conversations..."
-              className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none transition-colors"
-            />
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <button
-            onClick={() => setShowNewChat(true)}
-            className="p-2 rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/80 transition-colors"
-            title="New Chat"
+        {/* Search Bar */}
+        <div className="relative mb-3">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--muted)] border border-[var(--border)] rounded-xl focus:border-[var(--ring)] focus:outline-none transition-colors text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
+          />
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
         </div>
+
+        {/* Add New User Button */}
+        <button
+          onClick={() => setShowNewChat(true)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-colors font-medium"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+            />
+          </svg>
+          Add New User
+        </button>
       </div>
 
       {/* New Chat Modal */}
       {showNewChat && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 w-96 shadow-2xl">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">
-              Start New Chat
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-2xl p-6 w-96 shadow-2xl border border-[var(--border)]">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+              Add New User
             </h2>
             <form onSubmit={handleCreateChat}>
-              <input
-                type="text"
-                value={newChatUsername}
-                onChange={(e) => setNewChatUsername(e.target.value)}
-                placeholder="Enter username..."
-                className="w-full px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl mb-4 focus:border-[var(--accent-primary)] focus:outline-none transition-colors"
-                autoFocus
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={newChatUsername}
+                  onChange={(e) => setNewChatUsername(e.target.value)}
+                  placeholder="Enter username to start chat..."
+                  className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:border-[var(--ring)] focus:outline-none transition-colors text-[var(--foreground)]"
+                  autoFocus
+                />
+              </div>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowNewChat(false)}
-                  className="flex-1 py-2 px-4 rounded-xl bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]/80 transition-colors"
+                  onClick={() => {
+                    setShowNewChat(false);
+                    setNewChatUsername('');
+                  }}
+                  className="flex-1 py-2 px-4 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] hover:opacity-90 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 px-4 rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/80 transition-colors"
+                  disabled={!newChatUsername.trim()}
+                  className="flex-1 py-2 px-4 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Start Chat
                 </button>
@@ -161,16 +166,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="flex-1 overflow-y-auto">
         {filteredRooms.length === 0 && searchQuery.trim() && (
           <div className="p-8 text-center">
-            <p className="text-[var(--text-muted)] text-sm">
-              No conversations found matching "{searchQuery}"
+            <p className="text-[var(--muted-foreground)] text-sm">
+              No conversations found matching &quot;{searchQuery}&quot;
             </p>
           </div>
         )}
         {filteredRooms.length === 0 && !searchQuery.trim() && (
           <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--muted)] flex items-center justify-center">
               <svg
-                className="w-8 h-8 text-[var(--text-muted)]"
+                className="w-8 h-8 text-[var(--muted-foreground)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -183,10 +188,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 />
               </svg>
             </div>
-            <p className="text-[var(--text-muted)] text-sm">
+            <p className="text-[var(--muted-foreground)] text-sm">
               No conversations yet.
               <br />
-              Click + to start a new chat!
+              Click &quot;Add New User&quot; to start!
             </p>
           </div>
         )}
@@ -194,9 +199,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <button
             key={room.id}
             onClick={() => onSelectRoom(room)}
-            className={`w-full p-4 flex items-center gap-3 transition-all duration-200 hover:bg-[var(--bg-tertiary)] ${
+            className={`w-full p-4 flex items-center gap-3 transition-all duration-200 hover:bg-[var(--muted)] ${
               selectedRoom?.id === room.id
-                ? 'bg-[var(--bg-tertiary)] border-l-2 border-[var(--accent-primary)]'
+                ? 'bg-[var(--accent)] border-l-2 border-[var(--primary)]'
                 : 'border-l-2 border-transparent'
             }`}
           >
@@ -214,17 +219,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             {/* Info */}
             <div className="flex-1 min-w-0 text-left">
               <div className="flex items-center justify-between mb-0.5">
-                <h3 className="font-medium text-[var(--text-primary)] truncate">
+                <h3 className="font-medium text-[var(--foreground)] truncate">
                   {room.name}
                 </h3>
                 {room.lastMessage && (
-                  <span className="text-xs text-[var(--text-muted)]">
+                  <span className="text-xs text-[var(--muted-foreground)]">
                     {formatTime(room.lastMessage.timestamp)}
                   </span>
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-[var(--text-secondary)] truncate">
+                <p className="text-sm text-[var(--muted-foreground)] truncate">
                   {room.lastMessage
                     ? `${
                         room.lastMessage.isOwn ? 'You: ' : ''
@@ -232,7 +237,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     : 'No messages yet'}
                 </p>
                 {room.unreadCount > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-[var(--accent-primary)] text-white rounded-full">
+                  <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full">
                     {room.unreadCount} new
                   </span>
                 )}
@@ -243,7 +248,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       </div>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
+      <div className="p-4 border-t border-[var(--border)] bg-[var(--background)]">
         <div className="flex items-center gap-3">
           <Avatar
             src={currentUser.avatar}
@@ -251,16 +256,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             size="sm"
           />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-[var(--text-primary)] truncate">
+            <p className="font-medium text-[var(--foreground)] truncate">
               {currentUser.username}
             </p>
-            <p className="text-xs text-[var(--text-muted)] truncate">
+            <p className="text-xs text-[var(--muted-foreground)] truncate">
               {currentUser.fingerprint}
             </p>
           </div>
           <button 
             onClick={onShowProfile}
-            className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]"
+            className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
+            title="Settings"
           >
             <svg
               className="w-5 h-5"

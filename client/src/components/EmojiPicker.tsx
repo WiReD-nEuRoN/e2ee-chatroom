@@ -123,20 +123,20 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
   return (
     <div
       ref={pickerRef}
-      className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl shadow-2xl w-[360px] max-h-[420px] flex flex-col overflow-hidden"
+      className="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl w-[360px] max-h-[420px] flex flex-col overflow-hidden"
     >
       {/* Header with Search */}
-      <div className="p-3 border-b border-[var(--border-color)]">
+      <div className="p-3 border-b border-[var(--border)]">
         <div className="relative">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search emoji..."
-            className="w-full px-3 py-2 pl-9 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl text-sm focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
+            className="w-full px-3 py-2 pl-9 bg-[var(--background)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-[var(--ring)] transition-colors text-[var(--foreground)]"
           />
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -153,7 +153,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
 
       {/* Category Tabs */}
       {!searchQuery && (
-        <div className="flex items-center gap-1 px-2 py-2 border-b border-[var(--border-color)] overflow-x-auto scrollbar-hide">
+        <div className="flex items-center gap-1 px-2 py-2 border-b border-[var(--border)] overflow-x-auto scrollbar-hide">
           {categories
             .filter((cat) => cat.emojis.length > 0 || cat.id !== 'recently_used')
             .map((category) => (
@@ -163,8 +163,8 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
                 onClick={() => setActiveCategory(category.id)}
                 className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-colors ${
                   activeCategory === category.id
-                    ? 'bg-[var(--accent-primary)] text-white'
-                    : 'hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
+                    ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
+                    : 'hover:bg-[var(--muted)] text-[var(--muted-foreground)]'
                 }`}
                 title={category.name}
               >
@@ -181,7 +181,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
           <div>
             {filteredCategories.map((category) => (
               <div key={category.id} className="mb-4">
-                <div className="text-xs font-medium text-[var(--text-muted)] mb-2 px-1">
+                <div className="text-xs font-medium text-[var(--muted-foreground)] mb-2 px-1">
                   {category.name}
                 </div>
                 <div className="grid grid-cols-8 gap-1">
@@ -190,7 +190,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
                       key={`${category.id}-${idx}`}
                       type="button"
                       onClick={() => handleEmojiClick(emoji)}
-                      className="w-9 h-9 text-xl hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors flex items-center justify-center"
+                      className="w-9 h-9 text-xl hover:bg-[var(--muted)] rounded-lg transition-colors flex items-center justify-center"
                     >
                       {emoji}
                     </button>
@@ -199,7 +199,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
               </div>
             ))}
             {filteredCategories.length === 0 && (
-              <div className="text-center py-8 text-[var(--text-muted)]">
+              <div className="text-center py-8 text-[var(--muted-foreground)]">
                 No emojis found
               </div>
             )}
@@ -211,7 +211,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
               .filter((cat) => cat.id === activeCategory)
               .map((category) => (
                 <div key={category.id}>
-                  <div className="text-xs font-medium text-[var(--text-muted)] mb-2 px-1">
+                  <div className="text-xs font-medium text-[var(--muted-foreground)] mb-2 px-1">
                     {category.name}
                   </div>
                   <div className="grid grid-cols-8 gap-1">
@@ -221,13 +221,13 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
                           key={`${category.id}-${idx}`}
                           type="button"
                           onClick={() => handleEmojiClick(emoji)}
-                          className="w-9 h-9 text-xl hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors flex items-center justify-center"
+                          className="w-9 h-9 text-xl hover:bg-[var(--muted)] rounded-lg transition-colors flex items-center justify-center"
                         >
                           {emoji}
                         </button>
                       ))
                     ) : category.id === 'recently_used' ? (
-                      <div className="col-span-8 text-center py-4 text-[var(--text-muted)] text-sm">
+                      <div className="col-span-8 text-center py-4 text-[var(--muted-foreground)] text-sm">
                         No recent emojis
                       </div>
                     ) : null}
@@ -239,14 +239,14 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect, onClose
       </div>
 
       {/* Footer */}
-      <div className="p-2 border-t border-[var(--border-color)] flex justify-between items-center">
-        <span className="text-xs text-[var(--text-muted)]">
+      <div className="p-2 border-t border-[var(--border)] flex justify-between items-center">
+        <span className="text-xs text-[var(--muted-foreground)]">
           Click to insert
         </span>
         <button
           type="button"
           onClick={onClose}
-          className="text-xs px-3 py-1 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]"
+          className="text-xs px-3 py-1 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
         >
           Close
         </button>

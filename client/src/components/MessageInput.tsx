@@ -191,9 +191,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [isRecording]);
 
   return (
-    <div className="px-6 py-4 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
+    <div className="px-6 py-4 border-t border-[var(--border)] bg-[var(--card)]">
       {/* Encryption Notice */}
-      <div className="flex items-center justify-center gap-2 mb-3 text-xs text-[var(--text-muted)]">
+      <div className="flex items-center justify-center gap-2 mb-3 text-xs text-[var(--muted-foreground)]">
         <svg
           className="w-3.5 h-3.5"
           fill="none"
@@ -239,7 +239,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           type="button"
           disabled={disabled || isUploading || isRecording}
           onClick={() => fileInputRef.current?.click()}
-          className="p-3 rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-3 rounded-xl hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed"
           title="Attach file"
         >
           {isUploading ? (
@@ -272,8 +272,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className={`p-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               showEmojiPicker
-                ? 'bg-[var(--accent-primary)] text-white'
-                : 'hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                ? 'bg-[var(--primary)] text-white'
+                : 'hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
             }`}
             title="Add emoji"
           >
@@ -313,7 +313,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             placeholder={disabled ? 'Encryption not available' : isRecording ? 'Recording voice message...' : 'Type a message...'}
             disabled={disabled || isRecording}
             rows={1}
-            className="w-full px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-2xl resize-none focus:outline-none focus:border-[var(--accent-primary)] transition-colors text-[var(--text-primary)] placeholder:text-[var(--text-muted)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-2xl resize-none focus:outline-none focus:border-[var(--ring)] transition-colors text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ minHeight: '48px', maxHeight: '120px' }}
           />
         </div>
@@ -323,7 +323,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           <button
             type="submit"
             disabled={disabled || isRecording}
-            className="p-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white shadow-lg shadow-[var(--accent-primary)]/30 hover:shadow-[var(--accent-primary)]/50 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="p-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:opacity-90 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <svg
               className="w-5 h-5"
@@ -347,7 +347,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             className={`p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               isRecording
                 ? 'bg-red-500 text-white animate-pulse'
-                : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                : 'bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
             }`}
             title={isRecording ? 'Stop recording' : 'Record voice message'}
           >

@@ -33,7 +33,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ room, isTyping, onShowMe
   const totalCount = room.participants.length;
 
   return (
-    <div className="px-6 py-4 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]/50 backdrop-blur-sm">
+    <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--card)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           {/* Avatar */}
@@ -46,18 +46,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ room, isTyping, onShowMe
               {getInitials(room.name)}
             </div>
             {room.type === 'direct' && room.participants[0]?.isOnline && (
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--success)] border-2 border-[var(--bg-secondary)]" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-[var(--card)]" />
             )}
           </div>
 
           {/* Info */}
           <div>
-            <h2 className="font-semibold text-[var(--text-primary)] text-lg">
+            <h2 className="font-semibold text-[var(--foreground)] text-lg">
               {room.name}
             </h2>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
               {isTyping ? (
-                <span className="flex items-center gap-1 text-[var(--accent-primary)]">
+                <span className="flex items-center gap-1 text-[var(--primary)]">
                   <span className="typing-dot w-1.5 h-1.5 bg-current rounded-full" />
                   <span className="typing-dot w-1.5 h-1.5 bg-current rounded-full" />
                   <span className="typing-dot w-1.5 h-1.5 bg-current rounded-full" />
@@ -89,7 +89,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ room, isTyping, onShowMe
         {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Encryption Status */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--success)]/10 text-[var(--success)] text-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-sm">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -109,7 +109,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ room, isTyping, onShowMe
            {/* More Options */}
            <button 
              onClick={onShowMedia}
-             className="p-2.5 rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+             className="p-2.5 rounded-xl hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
              title="Show media"
            >
              <svg

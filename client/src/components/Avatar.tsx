@@ -69,8 +69,8 @@ export const Avatar: React.FC<AvatarProps> = ({
           className={`absolute -bottom-0.5 -right-0.5 ${
             size === 'sm' ? 'w-2.5 h-2.5' : size === 'md' ? 'w-3.5 h-3.5' : 'w-4 h-4'
           } rounded-full ${
-            isOnline ? 'bg-[var(--success)]' : 'bg-[var(--text-muted)]'
-          } border-2 border-[var(--bg-secondary)]`}
+            isOnline ? 'bg-green-500' : 'bg-[var(--muted-foreground)]'
+          } border-2 border-[var(--background)]`}
         />
       )}
     </div>

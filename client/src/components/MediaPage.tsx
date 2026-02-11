@@ -79,11 +79,11 @@ const MediaSection = ({
   if (items.length === 0) {
     return (
       <div className="pb-6">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 px-4">
+        <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3 px-4">
           {title}
         </h3>
         <div className="px-4 py-8 text-center">
-          <p className="text-[var(--text-muted)] text-sm">No {title.toLowerCase()} found</p>
+          <p className="text-[var(--muted-foreground)] text-sm">No {title.toLowerCase()} found</p>
         </div>
       </div>
     );
@@ -91,7 +91,7 @@ const MediaSection = ({
 
   return (
     <div className="pb-6">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 px-4">
+      <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3 px-4">
         {title}
       </h3>
 
@@ -121,10 +121,10 @@ const MediaSection = ({
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--muted)] transition-colors"
             >
               <svg
-                className="w-6 h-6 text-[var(--accent-primary)] flex-shrink-0"
+                className="w-6 h-6 text-[var(--primary)] flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -143,10 +143,10 @@ const MediaSection = ({
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[var(--text-primary)] truncate">
+                <p className="text-sm text-[var(--foreground)] truncate">
                   {item.title || 'Video'}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   {new Date(item.message.timestamp).toLocaleDateString()}
                 </p>
               </div>
@@ -158,10 +158,10 @@ const MediaSection = ({
           {items.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-3 p-3 bg-[var(--bg-tertiary)] rounded-lg"
+              className="flex items-center gap-3 p-3 bg-[var(--muted)] rounded-lg"
             >
               <svg
-                className="w-6 h-6 text-[var(--accent-primary)] flex-shrink-0"
+                className="w-6 h-6 text-[var(--primary)] flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -174,10 +174,10 @@ const MediaSection = ({
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[var(--text-primary)] truncate">
+                <p className="text-sm text-[var(--foreground)] truncate">
                   {item.title || 'Voice message'}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   {new Date(item.message.timestamp).toLocaleDateString()}
                 </p>
               </div>
@@ -192,10 +192,10 @@ const MediaSection = ({
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--muted)] transition-colors"
             >
               <svg
-                className="w-5 h-5 text-[var(--accent-primary)] flex-shrink-0"
+                className="w-5 h-5 text-[var(--primary)] flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -208,10 +208,10 @@ const MediaSection = ({
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[var(--accent-primary)] truncate font-medium">
+                <p className="text-sm text-[var(--primary)] truncate font-medium">
                   {item.url}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   {new Date(item.message.timestamp).toLocaleDateString()}
                 </p>
               </div>
@@ -226,10 +226,10 @@ const MediaSection = ({
               key={idx}
               href={item.url}
               download={item.title}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--muted)] transition-colors"
             >
               <svg
-                className="w-6 h-6 text-[var(--accent-primary)] flex-shrink-0"
+                className="w-6 h-6 text-[var(--primary)] flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -242,10 +242,10 @@ const MediaSection = ({
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[var(--text-primary)] truncate">
+                <p className="text-sm text-[var(--foreground)] truncate">
                   {item.title || 'Document'}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   {new Date(item.message.timestamp).toLocaleDateString()}
                 </p>
               </div>
@@ -283,15 +283,15 @@ export const MediaPage: React.FC<MediaPageProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[var(--bg-secondary)] rounded-2xl w-full max-w-md h-[80vh] flex flex-col shadow-2xl">
+      <div className="bg-[var(--card)] rounded-2xl w-full max-w-md h-[80vh] flex flex-col shadow-2xl border border-[var(--border)]">
         {/* Header */}
-        <div className="p-4 border-b border-[var(--border-color)] flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">
+        <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[var(--foreground)]">
             Media - {roomName}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]"
+            className="p-1 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
           >
             <svg
               className="w-5 h-5"
@@ -314,9 +314,9 @@ export const MediaPage: React.FC<MediaPageProps> = ({
           {!hasMedia ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--muted)] flex items-center justify-center">
                   <svg
-                    className="w-8 h-8 text-[var(--text-muted)]"
+                    className="w-8 h-8 text-[var(--muted-foreground)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -329,7 +329,7 @@ export const MediaPage: React.FC<MediaPageProps> = ({
                     />
                   </svg>
                 </div>
-                <p className="text-[var(--text-muted)] text-sm">
+                <p className="text-[var(--muted-foreground)] text-sm">
                   No media files found in this conversation
                 </p>
               </div>

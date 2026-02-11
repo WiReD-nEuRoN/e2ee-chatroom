@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
 
 interface ProfilePageProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface ProfilePageProps {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpdate }) => {
   const { user, setUser } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const [displayName, setDisplayName] = useState(user?.username || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isEditing, setIsEditing] = useState(false);
@@ -29,7 +31,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
-      // Update user in store
       if (user) {
         const updatedUser = {
           ...user,
@@ -37,8 +38,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
           avatar: avatar,
         };
         setUser(updatedUser);
-        
-        // Call parent callback to broadcast changes
         onProfileUpdate?.(displayName, avatar);
       }
       setIsEditing(false);
@@ -61,14 +60,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 w-96 shadow-2xl">
+      <div className="bg-[var(--card)] rounded-2xl p-6 w-96 shadow-2xl border border-[var(--border)]">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">
-            Profile
+          <h2 className="text-xl font-bold text-[var(--foreground)]">
+            Settings
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]"
+            className="p-1 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
           >
             <svg
               className="w-5 h-5"
@@ -84,6 +83,52 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
               />
             </svg>
           </button>
+        </div>
+
+        {/* Theme Toggle Section */}
+        <div className="mb-6 p-4 bg-[var(--muted)] rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-[var(--foreground)]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {theme === 'dark' ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                )}
+              </svg>
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                Theme
+              </span>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className="relative inline-flex h-6 w-11 items-center rounded-full bg-[var(--primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <p className="text-xs text-[var(--muted-foreground)] mt-2">
+            {theme === 'dark' ? 'Dark mode enabled' : 'Light mode enabled'}
+          </p>
         </div>
 
         {/* Avatar Section */}
@@ -103,7 +148,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
             {isEditing && (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[var(--accent-primary)] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
               >
                 <svg
                   className="w-4 h-4"
@@ -138,7 +183,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
 
         {/* Display Name Section */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
             Display Name
           </label>
           <input
@@ -147,26 +192,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
             onChange={(e) => setDisplayName(e.target.value)}
             disabled={!isEditing}
             placeholder="Enter your display name"
-            className="w-full px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[var(--text-primary)]"
+            className="w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:border-[var(--ring)] focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[var(--foreground)]"
           />
         </div>
 
         {/* User ID Section */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
             User ID
           </label>
-          <div className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl text-sm text-[var(--text-secondary)] truncate">
+          <div className="px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl text-sm text-[var(--muted-foreground)] truncate">
             {user?.id || 'N/A'}
           </div>
         </div>
 
         {/* Fingerprint Section */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
             Public Key Fingerprint
           </label>
-          <div className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl text-xs text-[var(--text-secondary)] truncate font-mono">
+          <div className="px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl text-xs text-[var(--muted-foreground)] truncate font-mono">
             {user?.fingerprint || 'N/A'}
           </div>
         </div>
@@ -177,13 +222,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
             <>
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex-1 py-2 px-4 rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/80 transition-colors font-medium"
+                className="flex-1 py-2 px-4 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-colors font-medium"
               >
                 Edit Profile
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 py-2 px-4 rounded-xl bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]/80 transition-colors font-medium"
+                className="flex-1 py-2 px-4 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] hover:opacity-90 transition-colors font-medium"
               >
                 Close
               </button>
@@ -193,7 +238,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
               <button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="flex-1 py-2 px-4 rounded-xl bg-[var(--success)] text-white hover:bg-[var(--success)]/80 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2 px-4 rounded-xl bg-green-600 text-white hover:opacity-90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -203,7 +248,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onProfileUpda
                   setAvatar(user?.avatar || '');
                   setIsEditing(false);
                 }}
-                className="flex-1 py-2 px-4 rounded-xl bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]/80 transition-colors font-medium"
+                className="flex-1 py-2 px-4 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] hover:opacity-90 transition-colors font-medium"
               >
                 Cancel
               </button>

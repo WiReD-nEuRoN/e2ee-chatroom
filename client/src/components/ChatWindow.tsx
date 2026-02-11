@@ -24,7 +24,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--bg-primary)]">
+    <div className="flex-1 flex flex-col bg-[var(--background)]">
       <ChatHeader room={room} isTyping={isTyping} onShowMedia={onShowMedia} />
       <MessageList messages={messages} />
       <MessageInput

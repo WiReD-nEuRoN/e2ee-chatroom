@@ -14,7 +14,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
   const [error, setError] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(true);
 
-  const { login } = useAuthStore();
+  const login = useAuthStore((state) => state.login);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,11 +80,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center shadow-lg shadow-[var(--accent-primary)]/30">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center shadow-lg shadow-[var(--primary)]/30">
             <svg
               className="w-10 h-10 text-white"
               fill="none"
@@ -100,26 +100,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
             </svg>
           </div>
           <h1 className="text-3xl font-bold gradient-text mb-2">E2EE Chat</h1>
-          <p className="text-[var(--text-secondary)]">
+          <p className="text-[var(--muted-foreground)]">
             Secure, end-to-end encrypted messaging
           </p>
         </div>
 
         {/* Form */}
-        <div className="glass rounded-2xl p-8">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-6 text-center">
+        <div className="glass rounded-2xl p-8 bg-[var(--card)] border border-[var(--border)]">
+          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-6 text-center">
             {isRegistering ? 'Create Account' : 'Welcome Back'}
           </h2>
 
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-[var(--error)]/10 border border-[var(--error)]/30 text-[var(--error)] text-sm">
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
                 Username
               </label>
               <input
@@ -127,13 +127,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                className="w-full px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:outline-none focus:border-[var(--accent-primary)] transition-colors text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+                className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--ring)] transition-colors text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
                 Password
               </label>
               <input
@@ -141,10 +141,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl focus:outline-none focus:border-[var(--accent-primary)] transition-colors text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+                className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--ring)] transition-colors text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 required
               />
-              <p className="mt-2 text-xs text-[var(--text-muted)]">
+              <p className="mt-2 text-xs text-[var(--muted-foreground)]">
                 Your password encrypts your private key. Never forget it!
               </p>
             </div>
@@ -186,7 +186,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsRegistering(!isRegistering)}
-              className="text-sm text-[var(--accent-primary)] hover:underline"
+              className="text-sm text-[var(--primary)] hover:underline"
             >
               {isRegistering
                 ? 'Already have an account? Login'
@@ -196,7 +196,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
         </div>
 
         {/* Security Info */}
-        <div className="mt-8 text-center text-xs text-[var(--text-muted)]">
+        <div className="mt-8 text-center text-xs text-[var(--muted-foreground)]">
           <p className="flex items-center justify-center gap-1 mb-1">
             <svg
               className="w-3 h-3"

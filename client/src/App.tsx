@@ -11,7 +11,7 @@ const ChatApp = () => {
   const chat = useChat();
 
   return (
-    <div className="h-screen w-full bg-[var(--bg-primary)]">
+    <div className="h-screen w-full bg-[var(--background)]">
       <ChatLayout chat={chat} />
     </div>
   );
@@ -58,8 +58,8 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+      <div className="h-screen w-full bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
       </div>
     );
   }

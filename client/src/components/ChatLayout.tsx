@@ -40,10 +40,10 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
 
   if (!currentUser) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-primary)]">
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-primary)] mx-auto mb-4" />
-          <p className="text-[var(--text-secondary)]">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4" />
+          <p className="text-[var(--muted-foreground)]">Loading...</p>
         </div>
       </div>
     );
@@ -51,10 +51,10 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
 
   if (isConnecting) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-primary)]">
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-primary)] mx-auto mb-4" />
-          <p className="text-[var(--text-secondary)]">Connecting to chat server...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4" />
+          <p className="text-[var(--muted-foreground)]">Connecting to chat server...</p>
         </div>
       </div>
     );
@@ -62,11 +62,11 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
 
   if (connectionError) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-primary)]">
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--background)]">
         <div className="text-center max-w-md px-4">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--error)]/10 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-[var(--error)]"
+              className="w-8 h-8 text-red-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -79,13 +79,13 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
+          <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
             Connection Failed
           </h2>
-          <p className="text-[var(--text-secondary)] mb-4">{connectionError}</p>
+          <p className="text-[var(--muted-foreground)] mb-4">{connectionError}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary)]/80 transition-colors"
+            className="px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-colors"
           >
             Retry
           </button>
@@ -95,7 +95,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-[var(--bg-primary)] overflow-hidden">
+    <div className="flex h-screen w-full bg-[var(--background)] overflow-hidden">
       {/* Sidebar */}
       <ChatSidebar
         rooms={rooms}
@@ -115,9 +115,9 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
           onShowMedia={() => setShowMedia(true)}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-[var(--bg-primary)]">
+        <div className="flex-1 flex items-center justify-center bg-[var(--background)]">
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center shadow-lg shadow-[var(--accent-primary)]/20">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
               <svg
                 className="w-10 h-10 text-white"
                 fill="none"
@@ -132,15 +132,15 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">
+            <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
               Welcome to E2EE Chat
             </h2>
-            <p className="text-[var(--text-secondary)] max-w-sm">
+            <p className="text-[var(--muted-foreground)] max-w-sm">
               Select a conversation from the sidebar to start chatting securely
             </p>
             {rooms.length === 0 && (
-              <p className="mt-4 text-sm text-[var(--text-muted)]">
-                No conversations yet. Create one to get started!
+              <p className="mt-4 text-sm text-[var(--muted-foreground)]">
+                No conversations yet. Click &quot;Add New User&quot; to get started!
               </p>
             )}
           </div>
@@ -153,7 +153,6 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
           onClose={() => setShowProfile(false)}
           onProfileUpdate={(username, avatar) => {
             console.log('Profile updated:', { username, avatar });
-            // Broadcast to other users would happen here via socket
           }}
         />
       )}
