@@ -31,6 +31,36 @@ const formatTime = (date: Date) => {
   }
 };
 
+const getMessagePreview = (room: ChatRoom): string => {
+  if (!room.lastMessage) return 'No messages yet';
+  
+  const { lastMessage } = room;
+  const prefix = lastMessage.isOwn ? 'You: ' : '';
+  
+  // Handle media messages
+  if (lastMessage.type === 'voice') {
+    return `${prefix}sent a voice message`;
+  }
+  
+  if (lastMessage.type === 'file' && lastMessage.fileInfo) {
+    const { type, isImage } = lastMessage.fileInfo;
+    
+    if (isImage || type?.startsWith('image/')) {
+      return `${prefix}sent an image`;
+    }
+    if (type?.startsWith('video/')) {
+      return `${prefix}sent a video`;
+    }
+    if (type?.startsWith('audio/')) {
+      return `${prefix}sent an audio file`;
+    }
+    return `${prefix}sent a document`;
+  }
+  
+  // Text message
+  return `${prefix}${lastMessage.content}`;
+};
+
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   rooms,
   selectedRoom,
@@ -71,17 +101,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar - Fixed overlapping icon */}
         <div className="relative mb-3">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search conversations..."
-            className="w-full pl-10 pr-4 py-2 text-sm bg-[var(--muted)] border border-[var(--border)] rounded-xl focus:border-[var(--ring)] focus:outline-none transition-colors text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[var(--muted)] border border-[var(--border)] rounded-xl focus:border-[var(--ring)] focus:outline-none transition-colors text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
           />
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -229,15 +259,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-[var(--muted-foreground)] truncate">
-                  {room.lastMessage
-                    ? `${
-                        room.lastMessage.isOwn ? 'You: ' : ''
-                      }${room.lastMessage.content}`
-                    : 'No messages yet'}
+                <p 
+                  className={`text-sm truncate ${
+                    room.unreadCount > 0 
+                      ? 'text-[var(--foreground)] font-semibold' 
+                      : 'text-[var(--muted-foreground)]'
+                  }`}
+                >
+                  {getMessagePreview(room)}
                 </p>
                 {room.unreadCount > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full">
+                  <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full shrink-0">
                     {room.unreadCount} new
                   </span>
                 )}

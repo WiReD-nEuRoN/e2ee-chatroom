@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { EmojiPicker } from './EmojiPicker';
+import { storageService } from '../services/storage';
+import { useAuthStore } from '../stores/authStore';
+import { useChatStore } from '../stores/chatStore';
 
 interface MessageInputProps {
   onSendMessage: (content: string, type?: 'text' | 'file' | 'voice', fileInfo?: any) => void;
@@ -12,6 +15,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   onTyping,
   disabled = false,
 }) => {
+  const { user } = useAuthStore();
+  const { selectedRoom } = useChatStore();
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -77,35 +82,46 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !selectedRoom || !user) return;
 
     setIsUploading(true);
     
-    // Read file as base64 for demo (in production, upload to server/storage)
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
+    try {
+      // Upload file to Supabase Storage
+      const uploadedFile = await storageService.uploadFile(file, selectedRoom.id, user.id);
+      
+      const { isImage, isVideo, isAudio } = storageService.isMediaFile(file.type);
+      
       const fileInfo = {
         name: file.name,
         size: file.size,
         type: file.type,
-        data: base64,
+        url: uploadedFile.url,
+        path: uploadedFile.path,
+        isImage,
+        isVideo,
+        isAudio,
       };
       
-      // For images, show preview
-      if (file.type.startsWith('image/')) {
-        onSendMessage(base64, 'file', { ...fileInfo, isImage: true });
+      // Send message with file info
+      if (isImage) {
+        onSendMessage(uploadedFile.url, 'file', fileInfo);
+      } else if (isVideo) {
+        onSendMessage('Video', 'file', fileInfo);
+      } else if (isAudio) {
+        onSendMessage('Audio', 'file', fileInfo);
       } else {
         onSendMessage(file.name, 'file', fileInfo);
       }
-      
+    } catch (error) {
+      console.error('[MessageInput] Failed to upload file:', error);
+      alert('Failed to upload file. Please try again.');
+    } finally {
       setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
-    
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

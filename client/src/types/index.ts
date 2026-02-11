@@ -24,7 +24,11 @@ export interface Message {
     size: number;
     type: string;
     data?: string;
+    url?: string;
+    path?: string;
     isImage?: boolean;
+    isVideo?: boolean;
+    isAudio?: boolean;
     duration?: number;
   };
 }

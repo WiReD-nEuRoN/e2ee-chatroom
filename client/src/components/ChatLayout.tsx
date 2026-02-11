@@ -4,6 +4,7 @@ import { ChatSidebar } from './ChatSidebar';
 import { ChatWindow } from './ChatWindow';
 import { ProfilePage } from './ProfilePage';
 import { MediaPage } from './MediaPage';
+import { NotificationContainer } from './NotificationContainer';
 
 interface ChatLayoutProps {
   chat: {
@@ -96,6 +97,9 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ chat }) => {
 
   return (
     <div className="flex h-screen w-full bg-[var(--background)] overflow-hidden">
+      {/* Notifications */}
+      <NotificationContainer />
+
       {/* Sidebar */}
       <ChatSidebar
         rooms={rooms}

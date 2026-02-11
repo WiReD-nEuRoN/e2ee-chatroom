@@ -159,23 +159,40 @@ const FileMessage = ({ message }: { message: Message }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Get the file URL - prefer Supabase URL over base64 data
+  const fileUrl = message.fileInfo?.url || message.fileInfo?.data || message.content;
+
   if (message.fileInfo?.isImage) {
     return (
       <div className="max-w-[300px]">
         <img
-          src={message.content}
+          src={fileUrl}
           alt="Shared image"
           className="rounded-lg max-w-full cursor-pointer hover:opacity-95 transition-opacity"
-          onClick={() => window.open(message.content, '_blank')}
+          onClick={() => window.open(fileUrl, '_blank')}
         />
       </div>
     );
   }
 
-  if (message.type === 'voice' && message.fileInfo?.data) {
+  // Video message
+  if (message.fileInfo?.isVideo) {
+    return (
+      <div className="max-w-[300px]">
+        <video
+          src={fileUrl}
+          controls
+          className="rounded-lg max-w-full"
+          preload="metadata"
+        />
+      </div>
+    );
+  }
+
+  if (message.type === 'voice' && fileUrl) {
     const handlePlay = () => {
       if (!audioRef.current) {
-        audioRef.current = new Audio(message.fileInfo!.data);
+        audioRef.current = new Audio(fileUrl);
         audioRef.current.onended = () => setIsPlaying(false);
       }
       
@@ -250,10 +267,12 @@ const FileMessage = ({ message }: { message: Message }) => {
           {message.fileInfo?.size ? formatFileSize(message.fileInfo.size) : 'Unknown size'}
         </p>
       </div>
-      {message.fileInfo?.data && (
+      {fileUrl && (
         <a
-          href={message.fileInfo.data}
-          download={message.fileInfo.name}
+          href={fileUrl}
+          download={message.fileInfo?.name}
+          target="_blank"
+          rel="noopener noreferrer"
           className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

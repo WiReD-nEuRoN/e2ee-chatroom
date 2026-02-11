@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../stores/authStore';
 import { useChatStore } from '../stores/chatStore';
+import { useNotificationStore } from '../stores/notificationStore';
 import { encryptionService } from './encryption';
 import type { Message, ChatRoom } from '../types';
 
@@ -111,6 +112,39 @@ class ChatService {
 
       console.log('[CLIENT] Adding message to store for room:', roomId);
       useChatStore.getState().addMessage(roomId, messageWithOwnFlag);
+
+      // Show notification if message is from another user and room is not selected
+      if (!isOwn) {
+        const selectedRoom = useChatStore.getState().selectedRoom;
+        if (selectedRoom?.id !== roomId) {
+          // Get room name
+          const room = useChatStore.getState().rooms.find(r => r.id === roomId);
+          const roomName = room?.name || 'Unknown';
+          
+          // Get notification message based on type
+          let notificationMessage = messageWithOwnFlag.content;
+          if (messageWithOwnFlag.type === 'voice') {
+            notificationMessage = 'sent a voice message';
+          } else if (messageWithOwnFlag.type === 'file' && messageWithOwnFlag.fileInfo) {
+            const { type, isImage } = messageWithOwnFlag.fileInfo;
+            if (isImage || type?.startsWith('image/')) {
+              notificationMessage = 'sent an image';
+            } else if (type?.startsWith('video/')) {
+              notificationMessage = 'sent a video';
+            } else {
+              notificationMessage = 'sent a file';
+            }
+          }
+
+          useNotificationStore.getState().addNotification({
+            title: roomName,
+            message: `${message.senderName}: ${notificationMessage}`,
+            roomId,
+            senderName: message.senderName,
+            type: messageWithOwnFlag.type,
+          });
+        }
+      }
     });
 
     this.socket.on('message:sent', (data: { roomId: string; messageId: string; tempId: string }) => {
